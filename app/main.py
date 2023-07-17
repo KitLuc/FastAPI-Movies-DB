@@ -35,14 +35,14 @@ def get_movies() -> list[Movie]:
     return movies
 
 
-@app.get("/movies/{director}", status_code=200, response_model=Movie)
+@app.get("/movies/{director}", status_code=200)
 def get_movie_by_director(director: str):
     DB = SESSION()
     movies = DB.query(MovieModel).filter(MovieModel.director == director).all()[0]
     return movies
 
 
-@app.post("/movies/", status_code=201, response_model=JSONResponse)
+@app.post("/movies/", status_code=201)
 def create_movie(movie: Movie):
     new_movie = MovieModel(**movie.dict())
     DB = SESSION()
@@ -51,25 +51,21 @@ def create_movie(movie: Movie):
     return JSONResponse(status_code=201, content={"message": "Movie created"})
 
 
-@app.put("/movies/{id}", status_code=200, response_model=JSONResponse)
-def update_movie(id: int, movie: Movie) -> JSONResponse:
+@app.put("/movies/{id}", status_code=200)
+def update_movie(id: int, movie: Movie):
     DB = SESSION()
     query = DB.query(MovieModel).filter(MovieModel.id == id).first()
     
     if not query:
         return JSONResponse(status_code=404, content={"message": "Movie not found"})
-    query.title = movie.title
-    query.year = movie.year
-    query.override = movie.override
-    query.director = movie.director
-    query.national = movie.national
-    query.gender = movie.gender
-    query.budget = movie.budget
+    
+    for key, value in movie.dict().items():
+        setattr(query, key, value)
     DB.commit()
     return JSONResponse(status_code=200, content={"message": "Movie updated"})
 
 
-@app.delete("/movies/{movie_id}", status_code=200, response_model=JSONResponse)
+@app.delete("/movies/{movie_id}", status_code=200)
 def delete_movie(id: int) -> JSONResponse:
     DB = SESSION()
     movie = DB.query(MovieModel).filter(MovieModel.id == id).first()

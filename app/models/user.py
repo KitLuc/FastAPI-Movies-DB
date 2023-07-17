@@ -8,3 +8,4 @@ class User(BASE):
     name:String = Column(String, nullable = False)
     user:String = Column(String, nullable = False)
     password:String = Column(String, nullable = False)
+    

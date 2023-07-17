@@ -4,10 +4,14 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from config.database import SESSION, ENGINE, BASE
 from models.movie import Movie as MovieModel
+from middlewares.error_handler import ErrorHandler
 
 
 BASE.metadata.create_all(bind=ENGINE)
 app = FastAPI()
+app.title = ""
+app.version = ""
+app.add_middleware(ErrorHandler)
 
 
 class Movie(BaseModel):

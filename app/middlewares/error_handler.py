@@ -1,0 +1,15 @@
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware, DispatchFunction
+
+
+class ErrorHandler(BaseHTTPMiddleware):
+    def __init__(self, app: FastAPI):
+        super().__init__(app)
+        self.app = app
+        
+    async def dispatch(self, request: Request, call_next) -> Response | JSONResponse:
+        try:
+            return await call_next(request)
+        except Exception as e:
+            return JSONResponse(content = { 'error': str(e) }, status_code=500)

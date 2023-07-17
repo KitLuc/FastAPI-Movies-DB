@@ -1,51 +1,82 @@
 import uvicorn
 from fastapi import FastAPI
-
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from config.database import SESSION, ENGINE, BASE
 from models.movie import Movie as MovieModel
 
-from pydantic import BaseModel, Field
+
+BASE.metadata.create_all(bind=ENGINE)
+app = FastAPI()
 
 
 class Movie(BaseModel):
-    id: int = Field(
-        ..., gt=0, description="Id de la pelicula"
-    )
-    title: str = Field(..., min_length=1, max_length=50)  # Validando longitud
-    year: int = Field(..., gt=1900, lt=2100)  # Validando rango
-    director: str = Field(..., min_length=1, max_length=50)
-    override: str = Field(..., min_length=1, max_length=50)
-    national: str = Field(..., min_length=1, max_length=50)
-    gender: str = Field(..., min_length=1, max_length=50)
-    budget: float = Field(..., gt=1000000, lt=1000000000)
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "id": 1,
-                "title": "Spiderman: Lejos de casa",
-            }
-        }
+    id: int
+    title: str
+    year: int
+    override: str
+    director: str
+    national: str
+    gender: str
+    budget: float
 
 
 
-app = FastAPI()
-BASE.metadata.create_all(bind=ENGINE)
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
 
-@app.post("/movies/", tags=["movies"], status_code=201)
-def create_movie(movie: Movie):
+@app.get("/movies/", status_code=200, response_model=list[Movie])
+def get_movies() -> list[Movie]:
     DB = SESSION()
-    movie = MovieModel(**movie.dict())
-    DB.add(movie)
+    movies = DB.query(MovieModel).all()
+    return movies
+
+
+@app.get("/movies/{director}", status_code=200, response_model=Movie)
+def get_movie_by_director(director: str):
+    DB = SESSION()
+    movies = DB.query(MovieModel).filter(MovieModel.director == director).all()[0]
+    return movies
+
+
+@app.post("/movies/", status_code=201, response_model=JSONResponse)
+def create_movie(movie: Movie):
+    new_movie = MovieModel(**movie.dict())
+    DB = SESSION()
+    DB.add(new_movie)
     DB.commit()
-    return "Movie created successfully"
+    return JSONResponse(status_code=201, content={"message": "Movie created"})
+
+
+@app.put("/movies/{id}", status_code=200, response_model=JSONResponse)
+def update_movie(id: int, movie: Movie) -> JSONResponse:
+    DB = SESSION()
+    query = DB.query(MovieModel).filter(MovieModel.id == id).first()
+    
+    if not query:
+        return JSONResponse(status_code=404, content={"message": "Movie not found"})
+    query.title = movie.title
+    query.year = movie.year
+    query.override = movie.override
+    query.director = movie.director
+    query.national = movie.national
+    query.gender = movie.gender
+    query.budget = movie.budget
+    DB.commit()
+    return JSONResponse(status_code=200, content={"message": "Movie updated"})
+
+
+@app.delete("/movies/{movie_id}", status_code=200, response_model=JSONResponse)
+def delete_movie(id: int) -> JSONResponse:
+    DB = SESSION()
+    movie = DB.query(MovieModel).filter(MovieModel.id == id).first()
+    DB.delete(movie)
+    DB.commit()
+    return JSONResponse(status_code=200, content={"message": "Movie deleted"})
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=1234, reload=True, workers=2)
-    
-    

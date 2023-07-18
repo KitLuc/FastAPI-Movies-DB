@@ -7,45 +7,42 @@ from services.movie import MovieService
 from schemas.movie import Movie
 
 
-app = APIRouter()
+movie = APIRouter()
 
 
-@app.get("/movies/", status_code=200, response_model=list[Movie])
-async def get_movies() -> list[Movie]:
+@movie.get("/movies/", status_code=200, response_model=list[Movie])
+def get_movies() -> list[Movie]:
     DB = SESSION()
-    movies = await MovieService(DB).get_movies()
+    movies = MovieService(DB).get_movies()
     return movies
 
 
-@app.get("/movies/{director}", status_code=200)
-async def get_movie_by_director(director: str):
+@movie.get("/movies/{director}", status_code=200)
+def get_movie_by_director(director: str):
     DB = SESSION()
-    movies = await MovieService(DB).get_movies(director)[0]
+    movies = MovieService(DB).get_movie(director)[0]
     return movies
 
 
-@app.post("/movies/", status_code=201)
-async def create_movie(movie: Movie):
+@movie.post("/movies/", status_code=201)
+def create_movie(movie: Movie):
     DB = SESSION()
-    await MovieService(DB).create_movie(movie)
+    MovieService(DB).create_movie(movie)
     return JSONResponse(status_code=201, content={"message": "Movie created"})
 
 
-@app.put("/movies/{id}", status_code=200)
-async def update_movie(id: int, movie: Movie):
+@movie.put("/movies/{id}", status_code=200)
+def update_movie(id: int, movie: Movie):
     DB = SESSION()
-    result = await MovieService(DB).update_movie(id, movie)
+    result = MovieService(DB).update_movie(id, movie)
     
     if not result:
         return JSONResponse(status_code=404, content={"message": "Movie not found"})
     return JSONResponse(status_code=200, content={"message": "Movie updated"})
 
 
-@app.delete("/movies/{movie_id}", status_code=200)
-async def delete_movie(id: int) -> JSONResponse:
+@movie.delete("/movies/{movie_id}", status_code=200)
+def delete_movie(id: int) -> JSONResponse:
     DB = SESSION()
-    result = await MovieService(DB).delete_movie(id)
-    
-    if not result:
-        return JSONResponse(status_code=404, content={"message": "Movie not found"})
+    MovieService(DB).delete_movie(id)
     return JSONResponse(status_code=200, content={"message": "Movie deleted"})

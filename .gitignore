@@ -274,4 +274,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# database
 *.sqlite

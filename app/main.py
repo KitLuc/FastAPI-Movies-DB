@@ -2,8 +2,8 @@ import uvicorn
 from fastapi import FastAPI
 from config.database import ENGINE, BASE
 from middlewares.error_handler import ErrorHandler
-from routes.user import app as user
-from routes.movie import app as movie
+from routes.user import user
+from routes.movie import movie
 
 
 BASE.metadata.create_all(bind=ENGINE)
@@ -14,8 +14,8 @@ app.add_middleware(ErrorHandler)
 
 
 # Add routes of API
-app.add_api_route(user)
-app.add_api_route(movie)
+app.include_router(user)
+app.include_router(movie)
 
 
 @app.get("/")

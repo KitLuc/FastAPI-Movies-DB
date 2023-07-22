@@ -2,6 +2,7 @@ from jwt import encode, decode
 
 __KEY = "Narnia"
 
+
 def create_token(data: dict) -> str:
     token: str = encode(payload=data, key=f"{__KEY}", algorithm="HS256")
     return token

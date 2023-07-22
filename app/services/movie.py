@@ -10,7 +10,7 @@ class MovieService:
         result = self.DB.query(MovieModel).all()
         return result
 
-    def get_movies(self, director):
+    def get_movie(self, director):
         result = self.DB.query(MovieModel).filter(MovieModel.director == director).all()
         return result
 
@@ -22,14 +22,14 @@ class MovieService:
 
     def update_movie(self, id: int, movie: Movie):
         query = self.DB.query(MovieModel).filter(MovieModel.id == id).first()
-
+        
         for key, value in movie.dict().items():
             setattr(query, key, value)
-
+        
         self.DB.commit()
         return
 
     def delete_movie(self, id: int):
-        query = self.DB.query(MovieModel).filter(MovieModel.id == id).delete()
+        self.DB.query(MovieModel).filter(MovieModel.id == id).delete()
         self.DB.commit()
         return

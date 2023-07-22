@@ -1,7 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from config.database import SESSION
-from models.movie import Movie as MovieModel
 from middlewares.jwt_bearer import JWTBearer
 from services.movie import MovieService
 from schemas.movie import Movie
@@ -24,24 +23,21 @@ def get_movie_by_director(director: str):
     return movies
 
 
-@movie.post("/movies/", status_code=201)
+@movie.post("/movies/", status_code=201, dependencies=[Depends(JWTBearer())])
 def create_movie(movie: Movie):
     DB = SESSION()
     MovieService(DB).create_movie(movie)
     return JSONResponse(status_code=201, content={"message": "Movie created"})
 
 
-@movie.put("/movies/{id}", status_code=200)
+@movie.put("/movies/{id}", status_code=200, dependencies=[Depends(JWTBearer())])
 def update_movie(id: int, movie: Movie):
     DB = SESSION()
-    result = MovieService(DB).update_movie(id, movie)
-    
-    if not result:
-        return JSONResponse(status_code=404, content={"message": "Movie not found"})
+    MovieService(DB).update_movie(id, movie)
     return JSONResponse(status_code=200, content={"message": "Movie updated"})
 
 
-@movie.delete("/movies/{movie_id}", status_code=200)
+@movie.delete("/movies/{movie_id}", status_code=200, dependencies=[Depends(JWTBearer())])
 def delete_movie(id: int) -> JSONResponse:
     DB = SESSION()
     MovieService(DB).delete_movie(id)

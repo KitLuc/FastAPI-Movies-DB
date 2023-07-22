@@ -19,7 +19,7 @@ app.include_router(movie)
 
 
 @app.get("/")
-async def root():
+def root():
     return {"message": "Hello World"}
 
 
